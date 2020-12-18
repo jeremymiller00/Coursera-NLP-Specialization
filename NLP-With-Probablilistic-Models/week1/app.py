@@ -5,9 +5,10 @@ from auto_correct import AutoCorrector
 
 
 @click.command()
+@click.option('--max_dist', default=2, help='Max string edit distance.')
 @click.argument('text', default='Enter some text')
-def correct(text):
-    ac = AutoCorrector()
+def correct(text, max_dist):
+    ac = AutoCorrector(max_dist=max_dist)
     ac.create_vocab()
     ac.calculate_probabilities()
     words = text.split()

@@ -29,11 +29,12 @@ import numpy as np
 
 class AutoCorrector():
 
-    def __init__(self):
+    def __init__(self, max_dist=2):
         self.vocab = None
         self.candidates = None
         self.probabilites = None
         self.word = None
+        self.max_dist = max_dist
 
     def create_vocab(self):
         self.vocab = set([w.lower() for w in brown.words()])
@@ -46,16 +47,6 @@ class AutoCorrector():
         word_counts = Counter(words)
         self.probabilites = {w:word_counts.get(w) / len(words) for w in word_counts.keys() }
 
-    # def create_candidates(self, word:str, distance:int = 3):
-    #     candidates = set()
-    #     for i, ch in enumerate(word):
-    #         # get removes
-    #         candidates.add(word[:i] + word[i+1:])
-    #         # inserts
-    #         for letter in string.ascii_lowercase:
-    #             candidates.add(word[:i] + letter + word[i:])
-    #     self.candidates = candidates
-
     def _create_candidates(self, word):
         splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
         inserts = [a[1:] + c + b for a, b in
@@ -64,10 +55,10 @@ class AutoCorrector():
                    map(lambda e: ('@' + e[0], e[1]), splits) if b]
         return set(inserts + deletes)
 
-    def create_candidates(self, word, max_dist=1):
+    def create_candidates(self, word):
         self.word = word
         self.candidates = set([word])
-        for i in range(max_dist):
+        for i in range(self.max_dist):
             for c in self.candidates:
                 self.candidates = self.candidates.union(self._create_candidates(c))
 
