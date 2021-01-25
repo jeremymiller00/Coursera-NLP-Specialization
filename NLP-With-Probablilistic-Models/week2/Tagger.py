@@ -18,6 +18,9 @@ class Tagger():
         self.tag_pair_counts = None
         self.ordered_tag_pair_set = None
         self.ordered_tag_set = None
+        self.vocab = None
+        self.ordered_vocab = None
+        self.N = None
 
     def populate_transition_matrix(self, data, epsilon=0.0001):
         """
@@ -38,12 +41,11 @@ class Tagger():
                 tag_pairs.append((tag1, tag2))
                 tag_counts.append(tag1)
         self.ordered_tag_set = sorted(set(tag_counts))
-        N = len(self.ordered_tag_set)
+        self.N = len(self.ordered_tag_set)
 
         self.tag_counts = Counter(tag_counts)
         self.tag_pair_counts = Counter(tag_pairs)
         self.ordered_tag_pair_set = sorted(self.tag_pair_counts.keys())
-        # self.transition_matrix = {}
         self.transition_matrix = np.zeros(
             (len(self.ordered_tag_set), len(self.ordered_tag_set)),
             dtype="float32")
@@ -53,19 +55,44 @@ class Tagger():
                 pair = (self.ordered_tag_set[i], self.ordered_tag_set[j])
                 try:
                     n = self.tag_pair_counts.get(pair) + epsilon
-                    d = self.tag_counts.get(self.ordered_tag_set[i]) + (N*epsilon)
-                    print(pair, n, d)
+                    d = self.tag_counts.get(self.ordered_tag_set[i]) + (self.N*epsilon)
                     self.transition_matrix[i][j] = n / d
-                except:
+                finally:
                     continue
 
-    def populate_emission_matrix(self, data):
-        # get all state_word counter
+    def populate_emission_matrix(self, data, epsilon=0.0001):
+        """
+        get all state_word counter
+        rows of emission matrix should correspond to rows of transition matrix
+        columns correspond to words in vocab
+        i.e. each is a POS tag
+
+        :param data: data: nltk brown tagged sentence corpus, or similar
+        :param epsilon: epsilon: regularization; avoids p==1 and div by 0
+        :return: None; populates emission matrix attribute
+        """
         c = Counter()
+        self.vocab = set()
         for sent in data:
             lowered = [(word[1], word[0].lower()) for word in sent] # flip to Tag, String
+            words = [word[0].lower() for word in sent] # get just the words
+            self.vocab.update(words)
             c.update(lowered)
-        self.emission_matrix = c
+        self.ordered_vocab = sorted(self.vocab)
+        self.emission_matrix = np.zeros(
+            (len(self.ordered_tag_set), len(self.ordered_vocab)),
+            dtype="float32")
+
+        for i in range(len(self.ordered_tag_set)):
+            for j in range(len(self.ordered_vocab)):
+                pair = (self.ordered_tag_set[i], self.ordered_vocab[j])
+                try:
+                    n = c.get(pair) + epsilon
+                    d = self.tag_counts.get(self.ordered_tag_set[i]) + (self.N*epsilon)
+                    self.emission_matrix[i][j] = n / d
+                finally:
+                    continue
+
 
     def viterbi_init(self):
         pass
