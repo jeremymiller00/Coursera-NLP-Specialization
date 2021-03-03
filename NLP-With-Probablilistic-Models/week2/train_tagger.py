@@ -33,4 +33,6 @@ if __name__ == '__main__':
     train, test = load_data()
     tagger = Tagger()
     tagger.fit(train)
+    result = tagger.tag_sentence("I love machine learning")
+    print(result)
     # evaluate_tagger(tagger, test)
