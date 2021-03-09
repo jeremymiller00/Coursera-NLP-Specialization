@@ -1,0 +1,6 @@
+# Change here to load the relevant set of documents.
+
+n-gram_size: 3
+data_path: /Users/jeremymiller/NLP-Specialization/NLP-With-Probablilistic-Models/week3/data/
+model_path: /Users/jeremymiller/NLP-Specialization/NLP-With-Probablilistic-Models/week3/models/
+log_file: /Users/jeremymiller/NLP-Specialization/NLP-With-Probablilistic-Models/week3/app.log
